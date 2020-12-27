@@ -195,24 +195,6 @@ class Flowshop():
 
 if __name__ == "__main__":
 
-    #f.definir_par("jeu1.txt")
-    # Ordo= ordonnancement.Ordonnancement(4)
-    # #l = f.creer_liste_NEH()
-    # #for j in l:
-    #     #print (j.numero())
-    # j1=job.Job(1,[1,3,5,2])
-    # j2=job.Job(2,[3,6,8,1])
-    # f=Flowshop(2,4,[j1,j2])
-    #
-    #
-    #
-    #
-    #
-    # Ordo.ordonnancer_liste_job([j1,j2])
-    # f.calculer_date_dispo(Ordo, 3, j1)
-    # f.calculer_duree_jobs(3, [j1,j2])
-    # f.calculer_borne_inf(Ordo, [j1,j2])
-
     Ordo = ordonnancement.Ordonnancement(5)
 	#j1=job.job(1,[1,3,5,2])
 	#j2=job.job(2,[3,6,8,1])
@@ -232,8 +214,6 @@ if __name__ == "__main__":
 
     f=Flowshop(8,5,l)
     Ordo.ordonnancer_liste_job(l)
-    #f.creer_liste_NEH()
-    #f.calculer_borne_inf(Ordo,l)
     f.evaluation_separation()
 
 
