@@ -85,23 +85,7 @@ def fonction_objectif(X,L_jobs):
     return(fonction_obj)
                    
             
-#%%
-# def f_methode(Y,i,j):
-#     if Y[i][j]>0:
-#         f_Y[i][j]=1
-#     else:
-#         f_Y[i][j]=0
 
-# def Y_t_plus_1_methode(L_jobs,Y,i,j):
-#     N=len(L_jobs)
-#     Y_t_plus_1=0
-#     for k in range(N):
-#         for l in range(N):
-#             Y_t_plus_1+=W_ijkl(i, j, k, l)*f(Y,L_jobs)[i][j]    
-#     Y_t_plus_1+=I_ij(L_jobs)
-#     return Y_t_plus_1
-              
-              
     
 def f(Y,L_jobs):
     N=len(L_jobs)
@@ -211,11 +195,4 @@ def calcul_ordo(L_jobs):
     
     
     return (f_y,maths.min(Tab))
-        
-        
-        
-    
-    
-
-    
             
