@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+""" Classe Ordonnancement """
+
+__author__ = 'Chams Lahlou'
+__date__ = 'Octobre 2019'
+
+import job
+
+class Ordonnancement():
+    
+
+	#constructeur pour un ordonnancement vide
+    def __init__(self, nb_machines):
+         
+        #Sequence des jobs
+        self.seq = []
+        self.nb_machines = nb_machines
+          		
+        self.dur = 0
+          		# date à partir de laquelle la machine est libre
+        self.date_dispo = [0 for i in range(self.nb_machines)]
+          
+
+
+   
+
+    #def duree (self):
+     #   return self.dur
+
+    def sequence(self):
+    	return self.seq
+    
+    def date_disponibilite(self, num_machine):
+    	return self.date_dispo[num_machine]
+    
+    def date_debut_operation(self, job, operation):
+    	return job.date_deb[operation]
+    
+    def fixer_date_debut_operation(self, job, operation, date):
+    	job.date_deb[operation] = date
+    
+    def afficher(self):
+        print("Ordre des jobs :", end='')
+        for job in self.seq:
+            print(" ",job.numero()," ", end='')
+            print()
+        for job in self.seq:
+            print("Job", job.numero(), ":", end='')
+            for mach in range(self.nb_machines):
+                print(" op", mach, "à t =", self.date_debut_operation(job, mach),"|", end='')
+            print()
+        print("Cmax =", self.dur)
+
+	# exo 2 A REMPLIR
+    def ordonnancer_job(self, job):
+        self.seq.append(job)
+        d= self.date_dispo[0]
+        self.fixer_date_debut_operation(job,0,d)
+        self.date_dispo[0]+= job.duree_op[0]
+		#il y a autant d'opérations que de machines donc jb.nb_op = nb machines.
+        for i in range(1,job.nb_op):
+            d = max(self.date_dispo[i],self.date_debut_operation(job,i-1) + job.duree_op[i-1])
+            self.fixer_date_debut_operation(job,i,d)
+            self.date_dispo[i] = d + job.duree_op[i]
+
+
+	# exo 3 A REMPLIR
+    def ordonnancer_liste_job(self, liste_jobs):
+        for job in liste_jobs:
+            self.ordonnancer_job(job)
+        self.dur=self.date_dispo[-1]
+        return self.dur
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+	Ordo= Ordonnancement(4)
+	j1=job.Job(1,[1,3,5,2])
+	j2=job.Job(2,[3,6,8,1])
+
+
+	Ordo.ordonnancer_liste_job([j1,j2])
+
+	Ordo.afficher()
+

@@ -1,0 +1,221 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jan  6 11:26:12 2020
+
+@author: baptistebignaud
+"""
+import numpy as np
+import job
+import randint
+import statistics as stats
+import ordonnancement
+import maths
+# Définition des paramètres
+alpha=1
+beta=1
+A=500
+B=500
+D=500
+C=200
+nb_machines=10  
+
+#Définition des paramètres de précision sur la recherche du minimum
+p=50
+nb_iter_max=10000
+ectp_max=1
+nombre_iteration=50
+
+
+#%%
+def kronecker(i,j):
+    if i==j:
+        return 1
+    return 0
+
+#%%
+#Définition matrice de poids et constante externe
+def W_ijkl(i,j,k,l):
+    return((-A*kronecker(i,k)*(1-kronecker(j,l))
+           -B*kronecker(j,l)*(1-kronecker(i,k))
+           -C
+           -D*kronecker(i,k)*(kronecker(l,j+1)+kronecker(l,j-1))))
+
+def I_ij(L_jobs):
+    N=len(L_jobs)
+    return(N*C)
+
+
+
+#%%
+def file_attente(Tab,elem_a_rajouter):
+    n=len(Tab)
+    Tab_copy=Tab.copy()
+    for i in range(n-1):
+        Tab[i+1]=Tab_copy[i]
+    Tab[0]=elem_a_rajouter
+    return Tab
+
+#%%
+#Définition fonction objectif
+
+#Quadruple somme avec indices i,j,k,l
+def quadruple_somme(L_jobs,X):
+    S_quadruple=0
+    N=len(L_jobs)
+    for i in range (N):
+        for j in range (N):
+            for k in range (N):
+                for l in range (N):
+                    S_quadruple+=W_ijkl(i,j,k,l)* X[i][j]*X[k][l]
+    return S_quadruple
+
+def double_somme(L_jobs,X):
+    S_double=0
+    N=len(L_jobs)
+    for i in range (N):
+        for j in range(N):
+            S_double+=I_ij(L_jobs)*X[i][j]
+    return S_double
+
+                
+def fonction_objectif(X,L_jobs):
+    N=len(L_jobs)
+    fonction_obj=-(quadruple_somme(L_jobs, X))/2+double_somme(L_jobs, X)+(C*N**2)/2
+    return(fonction_obj)
+                   
+            
+#%%
+# def f_methode(Y,i,j):
+#     if Y[i][j]>0:
+#         f_Y[i][j]=1
+#     else:
+#         f_Y[i][j]=0
+
+# def Y_t_plus_1_methode(L_jobs,Y,i,j):
+#     N=len(L_jobs)
+#     Y_t_plus_1=0
+#     for k in range(N):
+#         for l in range(N):
+#             Y_t_plus_1+=W_ijkl(i, j, k, l)*f(Y,L_jobs)[i][j]    
+#     Y_t_plus_1+=I_ij(L_jobs)
+#     return Y_t_plus_1
+              
+              
+    
+def f(Y,L_jobs):
+    N=len(L_jobs)
+    f_Y=np.zeros(N,N)
+    for i in range(N):
+        for j in range(N):
+            if Y[i][j]>0:
+                f_Y[i][j]=1
+            else:
+                f_Y[i][j]=0
+    return f_Y
+
+def Y_t_plus_1(L_jobs,Y):
+    N=len(L_jobs)
+    Y_t_plus_1=np.zeros(N,N)
+    for i in range(N):
+        for j in range(N):
+            for k in range(N):
+                for l in range(N):
+                    Y_t_plus_1[i][j]+=W_ijkl(i, j, k, l)*f(Y,L_jobs)[i][j]    
+            Y_t_plus_1+=I_ij(L_jobs)
+    return Y_t_plus_1
+    
+    
+    
+
+#%%
+
+
+def calcul_distance(L_jobs):
+    N=len(L_jobs)
+    D=np.zeros(N,N)
+    for i in range (N):
+        for j in range (N):
+            D[i][j]=alpha*sum(L_jobs[i].duree_op[:N-1])+beta*L_jobs[j].duree_op(N)
+    return D
+
+
+#Calcul de la durée total pour un ordonnancement précis
+def calcul_duree(X,L_jobs):
+    duree=0
+    n=len(X)
+    for i in range(n):
+        a=0
+        for j in range(n):
+            if X[i][j]==1:
+                a+=1
+        if a!=1:
+            duree= float('inf')
+            return duree
+    for j in range(n):
+        a=0
+        for i in range(n):
+            if X[i][j]==1:
+                a+=1
+        if a!=1:
+            duree= float('inf')
+            return duree
+    liste_numero_job=np.zeros(n)
+    for j in range(n):
+        for i in range(n):
+            if X[i][j]==1:
+                liste_numero_job[j]=i
+    ordonnancement_jobs=ordonnancement.ordonnancement(nb_machines)
+    for i in range(n):
+        ordonnancement_jobs.seq.append(L_jobs(liste_numero_job[i]))
+    
+    ordonnancement_jobs.ordonnancer_liste_jobs(ordonnancement_jobs)
+    
+                
+            
+
+#%%
+def calcul_ordo(L_jobs):
+    
+    N=len(L_jobs)
+    f_Y=np.zeros(N,N)
+    compteur=0
+    
+    
+    #Tableau qui contient les durées pour voir la convergence; initialisation avec écart type élevé
+    Tab=np.arrange(1,p,p)
+    Y=np.zeros(N,N)
+    
+    ectp=stats.stdev(Tab)
+    moy=stats.mean(Tab)
+    ectp_norm=ectp/moy
+    
+    #initialisation
+    for i in range (N):
+        for j in range(N):
+            f_Y[i][j]=randint(0,1)
+
+    f_y=f(Y,L_jobs)
+    file_attente(Tab, calcul_duree(f_y, L_jobs))
+    
+    while ((compteur< nb_iter_max) or (ectp_norm>ectp_max)):
+ 
+        
+        #Méthode à notre sauce
+        file_attente(Tab, calcul_duree(f_y, L_jobs))
+        #A faire #Ajoute la valeur de la durée correspondante dans Tab
+        Y=Y_t_plus_1(L_jobs, Y) #Maj de la valeur de Y(t)
+        f_y=f(Y,L_jobs)
+        compteur+=1
+    
+    
+    
+    return (f_y,maths.min(Tab))
+        
+        
+        
+    
+    
+
+    
+            
