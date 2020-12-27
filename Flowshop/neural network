@@ -183,11 +183,7 @@ def calcul_ordo(L_jobs):
     file_attente(Tab, calcul_duree(f_y, L_jobs))
     
     while ((compteur< nb_iter_max) or (ectp_norm>ectp_max)):
- 
-        
-        #Méthode à notre sauce
         file_attente(Tab, calcul_duree(f_y, L_jobs))
-        #A faire #Ajoute la valeur de la durée correspondante dans Tab
         Y=Y_t_plus_1(L_jobs, Y) #Maj de la valeur de Y(t)
         f_y=f(Y,L_jobs)
         compteur+=1
